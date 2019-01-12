@@ -13,7 +13,7 @@ const theme = {
 	lightgrey: '#E1E1E1',
 	offWhite: '#EDEDED',
 	maxWidth: '1000px',
-	bs: '0 12px 24px 0 rgba(0, 0, 0, 0.09'
+	bs: '0 12px 24px 0 rgba(0, 0, 0, 0.09)'
 };
 
 // General page with applied theme
@@ -27,6 +27,7 @@ const Inner = styled.div`
 	margin: 0 auto;
 	padding: 2rem;
 `;
+
 // InjectGlobal must only be called to apply to all styles in page
 injectGlobal`
   /* Font face creates a new font face we load from static assets  */ 
