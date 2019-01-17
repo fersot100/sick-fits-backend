@@ -9,6 +9,7 @@ import withData from '../lib/withData';
 class MyApp extends App {
 	// getIntialProps is a Next.js lifecycle method
 	// We define it below
+
 	static async getInitialProps({Component, ctx}) {
 		let pageProps = {};
 		if (Component.getInitialProps) {
@@ -20,6 +21,7 @@ class MyApp extends App {
 		return { pageProps };
 	}
 	render() {
+		
 		const { Component, apollo, pageProps } = this.props;
 		return (
 			<Container>

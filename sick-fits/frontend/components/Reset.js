@@ -9,7 +9,7 @@ import PropTypes from 'prop-types'
 const RESET_MUTATION = gql`
 	mutation RESET_MUTATION($resetToken: String!, $password: String!, $confirmPassword: String!) {
 		resetPassword(resetToken: $resetToken, password: $password, confirmPassword: $confirmPassword) {
-			message
+			id
 		}
 	}
 `;
@@ -52,7 +52,7 @@ class Reset extends Component {
 						<fieldset disabled={loading} aria-busy={loading}>
 							<h2>Reset Your Password {this.props.resetToken}</h2>
 							<Error error={error} />
-              {!error && !loading && called && <p>Success! Check your email for a link</p>}
+              {!error && !loading && called && <p>Success!</p>}
 							<label htmlFor="password">
 								Password
 								<input

@@ -7,6 +7,7 @@ const Nav = () => (
 	<User>
 		{({ data: { me } }) => (
 			<NavStyles>
+				{me && <p>{me.email}</p>}
 				<Link href="/items">
 					<a>Shop</a>
 				</Link>
@@ -20,6 +21,9 @@ const Nav = () => (
 				    </Link>
                     <Link href="/me">
                         <a>Account</a>
+                    </Link>
+					<Link href="/permissions">
+                        <a>Permissions</a>
                     </Link>
                     <SignOut />
                     </>
