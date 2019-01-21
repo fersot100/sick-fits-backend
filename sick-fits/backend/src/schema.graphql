@@ -13,6 +13,8 @@ type Mutation {
     signOut: SuccessMessage
     requestReset(email: String!): SuccessMessage
     resetPassword(resetToken: String!, password: String!, confirmPassword: String!): User!
+    updatePermissions(permissions: [Permission], userId: ID!) : User
+    addToCart(id: ID!): CartItem
 }
 
 type Query {

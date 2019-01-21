@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { randomBytes } = require('crypto');
 const { promisify } = require('util');
 const { transport, makeANiceEmail } = require('../mail');
-
+const  { hasPermission } = require('../utils');
 const Mutations = {
 	async createItem(parent, args, ctx, info) {
         // TODO: Check if they are logged in
@@ -16,7 +16,7 @@ const Mutations = {
                     ...args,
                     // This is how we create relationships between the data and user
                     user: {
-                        connection: {
+                        connect: {
                             id: ctx.request.userId
                         }
                     }
@@ -47,13 +47,20 @@ const Mutations = {
 		return item;
 	},
 	async deleteItem(parent, args, ctx, info) {
+		
 		const where = { id: args.id };
 		// 1. Find the item
-		const item = await ctx.db.query.item({ where }, `{id, title}`);
+		const item = await ctx.db.query.item({ where }, `{id, title, user}`);
 		// 2.  TODO: Check if they own the item, or have the permissions
+		const ownsItem = item.user.id
+		const hasPermission = ctx.request.user.permissions.some(permission => ['ADMIN', 'ITEMDELETE'].includes(permission));
+		
+		if ( !ownsItem && !hasPermission) {
+			throw new Error("You aren't allow to do that");
+		}
 
 		// 3. Delete it!
-		return ctx.db.mutation.deleteItem({ where }, info);
+		return await ctx.db.mutation.deleteItem({ where }, info);
 	},
 	async signUp(parent, args, ctx, info) {
 		// Lowercase email
@@ -166,6 +173,68 @@ const Mutations = {
 		// 8. Return the new user
 		return updatedUser;
 	},
+	async updatePermissions(parent, args, ctx, info) {
+		// 1. Check if they are logged in
+		if (!ctx.request.userId) {
+			throw new Error('You must be logged in!');
+		}
+		// 2. Query the current user
+		const currentUser = await ctx.db.query.user(
+			{
+				where: {
+					id: ctx.request.userId,
+				},
+			},
+			info
+		);
+		// 3. Check if they have the permissions to do this 
+		hasPermission(currentUser, ['ADMIN', 'PERMISSIONUPDATE'])
+		// 4. Update the permissions
+		const user = await ctx.db.mutation.updateUser({
+			data: {
+				permissions: {
+					set: args.permissions
+				}
+			},
+			where: {
+				id: args.userId
+			},
+		}, info);
+		return user;
+	},
+	async addToCart(parent, args, ctx, info) {
+		// 1. Verify auth
+		const { userId } = ctx.request;
+		if (!userId) {
+			throw new Error('You must be signed in');
+		}
+		// 2. Query users's cart
+		const [existingCartItem] = await ctx.db.query.cartitems({
+			where: {
+				user: {id: userId},
+				item: {id: args.id},
+			},
+		})
+		// 3. Check if the item is already in their cart and increment by 1 if it is
+		if(existingCartItem) {
+			console.log('This item is already in their cart');
+			return ctx.db.mutation.updateCartItem({
+				where: { id: existingCartItem.id },
+				data: { quantity: existingCartItem.quantity + 1 }
+			});
+		}
+		// 4. If it is not, create a fresh cartItem for that user!
+		return await ctx.db.mutation.createCartItem({data: {
+			data: {
+				user: {
+					connect: {id: userId},
+				},
+				item: {
+					connect: {id: args.id}
+				}
+			}
+		}})
+	}
 	// async assignUserToAllItems(parent, args, ctx, info) {
 	// 	let items = await ctx.db.query.items({});
 	// 	items = await Promise.all( 
